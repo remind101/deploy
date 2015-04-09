@@ -49,6 +49,10 @@ var flags = []cli.Flag{
 		Value: "",
 		Usage: "The environment to deploy to.",
 	},
+	cli.BoolFlag{
+		Name:  "force, f",
+		Usage: "Ignore failed tests.",
+	},
 }
 
 // NewApp returns a new cli.App for the deploy command.
@@ -155,11 +159,18 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 		return nil, fmt.Errorf("-env flag is required")
 	}
 
+	var contexts *[]string
+	if c.Bool("force") {
+		s := []string{}
+		contexts = &s
+	}
+
 	return &github.DeploymentRequest{
-		Ref:         github.String(ref),
-		Task:        github.String("deploy"),
-		AutoMerge:   github.Bool(false),
-		Environment: github.String(env),
+		Ref:              github.String(ref),
+		Task:             github.String("deploy"),
+		AutoMerge:        github.Bool(false),
+		Environment:      github.String(env),
+		RequiredContexts: contexts,
 		// TODO Description:
 	}, nil
 }

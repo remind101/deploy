@@ -1,11 +1,12 @@
 package deploy
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -64,41 +65,53 @@ func NewApp() *cli.App {
 	app.Name = Name
 	app.Usage = Usage
 	app.Flags = flags
-	app.Action = RunDeploy
+	app.Action = func(c *cli.Context) {
+		if err := RunDeploy(c); err != nil {
+			msg := err.Error()
+			if err, ok := err.(*github.ErrorResponse); ok {
+				msg = err.Message
+			}
+
+			fmt.Println(msg)
+			os.Exit(-1)
+		}
+	}
 
 	return app
 }
 
 // RunDeploy performs a deploy.
-func RunDeploy(c *cli.Context) {
+func RunDeploy(c *cli.Context) error {
 	w := c.App.Writer
 
 	h, err := hub.CurrentConfig().PromptForHost("github.com")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	client, err := newGitHubClient(c, h)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	owner, repo := splitRepo(c.Args()[0])
+	nwo, err := Repo(c.Args())
+	if err != nil {
+		return err
+	}
+
+	owner, repo, err := SplitRepo(nwo)
+	if err != nil {
+		return err
+	}
 
 	r, err := newDeploymentRequest(c)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	d, _, err := client.Repositories.CreateDeployment(owner, repo, r)
 	if err != nil {
-		msg := err.Error()
-		if err, ok := err.(*github.ErrorResponse); ok {
-			msg = err.Message
-		}
-
-		fmt.Fprintf(os.Stderr, "%s\n", msg)
-		os.Exit(-1)
+		return err
 	}
 
 	ch := make(chan *github.DeploymentStatus)
@@ -120,16 +133,17 @@ func RunDeploy(c *cli.Context) {
 	timeout := time.Duration(20)
 	select {
 	case <-time.After(timeout * time.Second):
-		fmt.Fprintf(os.Stderr, "No deployment started after waiting %d seconds\n", timeout)
-		os.Exit(-1)
+		return fmt.Errorf("no deployment started after waiting %d seconds\n", timeout)
 	case status := <-ch:
 		var url string
 		if status.TargetURL != nil {
 			url = *status.TargetURL
 		}
 
-		fmt.Fprintf(w, "Deployment started: %s\n", url)
+		fmt.Fprintf(w, "%s\n", url)
 	}
+
+	return nil
 }
 
 func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
@@ -152,7 +166,60 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 	}, nil
 }
 
-func splitRepo(nwo string) (owner string, repo string) {
+// Repo will determine the correct GitHub repo to deploy to, based on a set of
+// arguments.
+func Repo(arguments []string) (string, error) {
+	if len(arguments) != 0 {
+		return arguments[0], nil
+	}
+
+	remotes, err := hub.Remotes()
+	if err != nil {
+		return "", err
+	}
+
+	repo := GitHubRepo(remotes)
+	if repo == "" {
+		return repo, errors.New("no GitHub repo found in .git/config")
+	}
+
+	return repo, nil
+}
+
+// A regular expression that can convert a URL.Path into a GitHub repo name.
+var remoteRegex = regexp.MustCompile(`^/(.*)\.git$`)
+
+// GitHubRepo, given a list of git remotes, will determine what the GitHub repo
+// is.
+func GitHubRepo(remotes []hub.Remote) string {
+	// We only want to look at the `origin` remote.
+	remote := findRemote("origin", remotes)
+	if remote == nil {
+		return ""
+	}
+
+	// Remotes that are not pointed at a GitHub repo are not valid.
+	if remote.URL.Host != "github.com" {
+		return ""
+	}
+
+	// Convert `/remind101/acme-inc.git` => `remind101/acme-inc`.
+	return remoteRegex.ReplaceAllString(remote.URL.Path, "$1")
+}
+
+func findRemote(name string, remotes []hub.Remote) *hub.Remote {
+	for _, r := range remotes {
+		if r.Name == name {
+			return &r
+		}
+	}
+
+	return nil
+}
+
+// SplitRepo splits a repo string in the form remind101/acme-inc into it's owner
+// and repo components.
+func SplitRepo(nwo string) (owner string, repo string, err error) {
 	parts := strings.Split(nwo, "/")
 	owner = parts[0]
 	repo = parts[1]

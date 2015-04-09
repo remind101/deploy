@@ -1,34 +1,66 @@
-// package deploy_test containers integration tests for the deploy command.
-package deploy_test
+package deploy
 
 import (
-	"bytes"
-	"strings"
+	"net/url"
 	"testing"
 
-	cli "github.com/remind101/deploy"
+	hub "github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/github"
 )
 
-func TestDeploy(t *testing.T) {
-	deploy(t, "-ref=master -env=staging deploycli/acme-inc")
+var remotes = map[string]*url.URL{
+	"github+git":   parseURL("ssh://git@github.com/remind101/acme-inc.git"),
+	"github+https": parseURL("https://github.com/remind101/acme-inc.git"),
+	"heroku+git":   parseURL("ssh://git@heroku.com/acme-inc.git"),
 }
 
-// deploy runs a deploy command against a fake github.
-func deploy(t testing.TB, command string) (out string) {
-	b := new(bytes.Buffer)
-
-	app := cli.NewApp()
-	app.Writer = b
-
-	arguments := strings.Split(command, " ")
-	arguments = append([]string{"deploy"}, arguments...)
-	t.Log(arguments)
-
-	if err := app.Run(arguments); err != nil {
-		t.Fatal(err)
+func TestGitHubRepo(t *testing.T) {
+	tests := []struct {
+		remotes []hub.Remote
+		out     string
+	}{
+		{[]hub.Remote{{Name: "origin", URL: remotes["github+git"]}}, "remind101/acme-inc"},
+		{[]hub.Remote{{Name: "origin", URL: remotes["github+https"]}}, "remind101/acme-inc"},
+		{[]hub.Remote{{Name: "origin", URL: remotes["heroku+git"]}}, ""},
 	}
 
-	out = b.String()
-	t.Log(out)
-	return
+	for i, tt := range tests {
+		repo := GitHubRepo(tt.remotes)
+
+		if got, want := repo, tt.out; got != want {
+			t.Fatalf("#%d: Repo() => %s; want %s", i, got, want)
+		}
+	}
+}
+
+func TestSplitRepo(t *testing.T) {
+	tests := []struct {
+		in          string
+		owner, repo string
+		err         error
+	}{
+		{"remind101/acme-inc", "remind101", "acme-inc", nil},
+	}
+
+	for _, tt := range tests {
+		owner, repo, err := SplitRepo(tt.in)
+		if err != tt.err {
+			t.Fatalf("err => %v; want %v", err, tt.err)
+		}
+
+		if got, want := owner, tt.owner; got != want {
+			t.Fatalf("owner => %s; want %s", got, want)
+		}
+
+		if got, want := repo, tt.repo; got != want {
+			t.Fatalf("repo => %s; want %s", got, want)
+		}
+	}
+}
+
+func parseURL(uri string) *url.URL {
+	u, err := url.Parse(uri)
+	if err != nil {
+		panic(err)
+	}
+	return u
 }

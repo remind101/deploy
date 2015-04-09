@@ -65,7 +65,11 @@ func NewApp() *cli.App {
 		if err := RunDeploy(c); err != nil {
 			msg := err.Error()
 			if err, ok := err.(*github.ErrorResponse); ok {
-				msg = err.Message
+				if strings.HasPrefix(err.Message, "Conflict: Commit status checks failed for") {
+					msg = "Commit status checks failed. You can bypass commit status checks with the --force flag."
+				} else {
+					msg = err.Message
+				}
 			}
 
 			fmt.Println(msg)

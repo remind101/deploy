@@ -5,7 +5,7 @@ Deploy is a small Go program for creating **[GitHub Deployments](https://develop
 ## Installation
 
 ```
-go get -u github.com/remind101/deploy
+go get -u github.com/remind101/deploy/cmd/deploy
 ```
 
 **TODO**: Prebuilt binaries.
@@ -20,7 +20,10 @@ Deploy the master branch of a repo to staging:
 $ deploy -ref=master -env=staging remind101/r101-api
 ```
 
-Deploy the current git branch to staging. This requires that you're within a git repo:
+An empty `-ref` flag can mean one of two things:
+
+1. If you're within a git repo, it defaults to the current git commit.
+2. If you're not within a git repo, then it defaults to `master`.
 
 ```console
 $ deploy -env=staging remind101/r101-api

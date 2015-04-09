@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/github/hub/git"
 	hub "github.com/github/hub/github"
 	"github.com/google/go-github/github"
 )
@@ -18,6 +19,8 @@ const (
 	Name  = "deploy"
 	Usage = "A command for creating GitHub deployments"
 )
+
+const DefaultRef = "master"
 
 var flags = []cli.Flag{
 	cli.StringFlag{
@@ -28,7 +31,7 @@ var flags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:  "ref",
-		Value: "master",
+		Value: "",
 		Usage: "The git ref to deploy. Can be a git commit, branch or tag.",
 	},
 	cli.StringFlag{
@@ -65,15 +68,20 @@ func RunDeploy(c *cli.Context) {
 
 	owner, repo := splitRepo(c.Args()[0])
 
-	d, _, err := client.Repositories.CreateDeployment(owner, repo, &github.DeploymentRequest{
-		Ref:         github.String(c.String("ref")),
-		Task:        github.String("deploy"),
-		AutoMerge:   github.Bool(false),
-		Environment: github.String(c.String("env")),
-		// TODO Description:
-	})
+	r, err := newDeploymentRequest(c)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	d, _, err := client.Repositories.CreateDeployment(owner, repo, r)
+	if err != nil {
+		msg := err.Error()
+		if err, ok := err.(*github.ErrorResponse); ok {
+			msg = err.Message
+		}
+
+		fmt.Fprintf(os.Stderr, "%s\n", msg)
+		os.Exit(-1)
 	}
 
 	ch := make(chan *github.DeploymentStatus)
@@ -105,6 +113,26 @@ func RunDeploy(c *cli.Context) {
 
 		fmt.Fprintf(w, "Deployment started: %s\n", url)
 	}
+}
+
+func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
+	ref := c.String("ref")
+	if ref == "" {
+		r, err := git.Ref("HEAD")
+		if err == nil {
+			ref = r
+		} else {
+			ref = DefaultRef
+		}
+	}
+
+	return &github.DeploymentRequest{
+		Ref:         github.String(ref),
+		Task:        github.String("deploy"),
+		AutoMerge:   github.Bool(false),
+		Environment: github.String(c.String("env")),
+		// TODO Description:
+	}, nil
 }
 
 func splitRepo(nwo string) (owner string, repo string) {

@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
@@ -184,6 +185,8 @@ var (
 // sends on the returned channel.
 func waitState(states []string, owner, repo string, deploymentID int, c *github.Client) *github.DeploymentStatus {
 	for {
+		<-time.After(1 * time.Second)
+
 		statuses, _, err := c.Repositories.ListDeploymentStatuses(owner, repo, deploymentID, nil)
 		if err != nil {
 			continue

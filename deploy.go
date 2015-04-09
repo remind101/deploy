@@ -111,43 +111,34 @@ func RunDeploy(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Fprintf(w, "Creating deployment request of %s@%s to %s... ", nwo, *r.Ref, *r.Environment)
+	fmt.Fprintf(w, "Creating deployment request for %s@%s to %s...\n", nwo, *r.Ref, *r.Environment)
 
 	d, _, err := client.Repositories.CreateDeployment(owner, repo, r)
 	if err != nil {
 		return err
 	}
 
-	ch := make(chan *github.DeploymentStatus)
+	started := make(chan *github.DeploymentStatus)
+	completed := make(chan *github.DeploymentStatus)
 
 	go func() {
-		for {
-			statuses, _, err := client.Repositories.ListDeploymentStatuses(owner, repo, *d.ID, nil)
-			if err != nil {
-				continue
-			}
-
-			completed := CompletedStatus(statuses)
-			if completed != nil {
-				ch <- completed
-				break
-			}
-		}
+		started <- waitState(pendingStates, owner, repo, *d.ID, client)
 	}()
 
-	status := <-ch
+	go func() {
+		completed <- waitState(completedStates, owner, repo, *d.ID, client)
+	}()
 
+	status := <-started
 	var url string
 	if status.TargetURL != nil {
 		url = *status.TargetURL
 	}
+	fmt.Fprintf(w, "Started: %s\n", url)
 
-	state := "unkown"
-	if status.State != nil {
-		state = *status.State
-	}
+	status = <-completed
 
-	fmt.Fprintf(w, "%s: %s\n", state, url)
+	fmt.Fprintf(w, "Completed: %s\n", *status.State)
 
 	return nil
 }
@@ -184,14 +175,32 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 	}, nil
 }
 
-var completedStatuses = []string{"success", "error", "failure"}
+var (
+	pendingStates   = []string{"pending"}
+	completedStates = []string{"success", "error", "failure"}
+)
 
-// CompletedStatus takes a slice of github.DeploymentStatus and returns the
-// first "completed" status. nil is returned if there are no completed
-// deployment states.
-func CompletedStatus(statuses []github.DeploymentStatus) *github.DeploymentStatus {
+// waitState waits for a deployment status that matches the given states, then
+// sends on the returned channel.
+func waitState(states []string, owner, repo string, deploymentID int, c *github.Client) *github.DeploymentStatus {
+	for {
+		statuses, _, err := c.Repositories.ListDeploymentStatuses(owner, repo, deploymentID, nil)
+		if err != nil {
+			continue
+		}
+
+		status := firstStatus(states, statuses)
+		if status != nil {
+			return status
+		}
+	}
+}
+
+// firstStatus takes a slice of github.DeploymentStatus and returns the
+// first status that matches the provided slice of states.
+func firstStatus(states []string, statuses []github.DeploymentStatus) *github.DeploymentStatus {
 	for _, ds := range statuses {
-		for _, s := range completedStatuses {
+		for _, s := range states {
 			if ds.State != nil && *ds.State == s {
 				return &ds
 			}

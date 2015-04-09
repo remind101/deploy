@@ -22,13 +22,24 @@ const (
 
 const DefaultRef = "master"
 
+func init() {
+	cli.AppHelpTemplate = `USAGE:
+   # Deploy the master branch of remind101/acme-inc to staging
+   {{.Name}} -env=staging -ref=master remind101/acme-inc
+
+   # Deploy HEAD of the current branch to staging
+   {{.Name}} -env=staging remind101/acme-inc
+
+   # Deploy the current GitHub repo to staging
+   {{.Name}} -env=staging
+{{if .Flags}}
+OPTIONS:
+   {{range .Flags}}{{.}}
+   {{end}}{{end}}
+`
+}
+
 var flags = []cli.Flag{
-	cli.StringFlag{
-		Name:   "github",
-		Value:  "https://api.github.com",
-		Usage:  "The location of the GitHub API. You probably don't want to change this.",
-		EnvVar: "GITHUB_API_URL",
-	},
 	cli.StringFlag{
 		Name:  "ref",
 		Value: "",
@@ -38,6 +49,12 @@ var flags = []cli.Flag{
 		Name:  "env",
 		Value: "",
 		Usage: "The environment to deploy to.",
+	},
+	cli.StringFlag{
+		Name:   "github",
+		Value:  "https://api.github.com",
+		Usage:  "The location of the GitHub API. You probably don't want to change this.",
+		EnvVar: "GITHUB_API_URL",
 	},
 }
 

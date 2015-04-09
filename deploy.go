@@ -112,7 +112,7 @@ func RunDeploy(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Fprintf(w, "Deploying %s@%s to %s... ", nwo, *r.Ref, *r.Environment)
+	fmt.Fprintf(w, "Deploying %s@%s to %s...\n", nwo, *r.Ref, *r.Environment)
 
 	d, _, err := client.Repositories.CreateDeployment(owner, repo, r)
 	if err != nil {

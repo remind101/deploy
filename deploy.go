@@ -40,12 +40,12 @@ OPTIONS:
 
 var flags = []cli.Flag{
 	cli.StringFlag{
-		Name:  "ref",
+		Name:  "ref, branch, commit, tag",
 		Value: "",
 		Usage: "The git ref to deploy. Can be a git commit, branch or tag.",
 	},
 	cli.StringFlag{
-		Name:  "env",
+		Name:  "env, e",
 		Value: "",
 		Usage: "The environment to deploy to.",
 	},
@@ -150,11 +150,16 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 		}
 	}
 
+	env := c.String("env")
+	if env == "" {
+		return nil, fmt.Errorf("-env flag is required")
+	}
+
 	return &github.DeploymentRequest{
 		Ref:         github.String(ref),
 		Task:        github.String("deploy"),
 		AutoMerge:   github.Bool(false),
-		Environment: github.String(c.String("env")),
+		Environment: github.String(env),
 		// TODO Description:
 	}, nil
 }

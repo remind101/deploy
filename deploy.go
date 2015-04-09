@@ -24,7 +24,7 @@ const (
 	DefaultTimeout = 20 * time.Second
 )
 
-var errTimeout = errors.New("timed out waiting for build to start")
+var errTimeout = errors.New("Timed out waiting for build to start. Did you add a webhook to handle deployment events?")
 
 func init() {
 	cli.AppHelpTemplate = `USAGE:

@@ -101,7 +101,7 @@ func RunDeploy(c *cli.Context) error {
 
 	owner, repo, err := SplitRepo(nwo)
 	if err != nil {
-		return err
+		return fmt.Errorf("Invalid GitHub repo: %s", nwo)
 	}
 
 	r, err := newDeploymentRequest(c)
@@ -217,12 +217,21 @@ func findRemote(name string, remotes []hub.Remote) *hub.Remote {
 	return nil
 }
 
+var errInvalidRepo = errors.New("invalid repo")
+
 // SplitRepo splits a repo string in the form remind101/acme-inc into it's owner
 // and repo components.
 func SplitRepo(nwo string) (owner string, repo string, err error) {
 	parts := strings.Split(nwo, "/")
+
+	if len(parts) != 2 {
+		err = errInvalidRepo
+		return
+	}
+
 	owner = parts[0]
 	repo = parts[1]
+
 	return
 }
 

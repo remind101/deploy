@@ -39,6 +39,7 @@ func TestSplitRepo(t *testing.T) {
 		err         error
 	}{
 		{"remind101/acme-inc", "remind101", "acme-inc", nil},
+		{"foo", "", "", errInvalidRepo},
 	}
 
 	for _, tt := range tests {

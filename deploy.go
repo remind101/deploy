@@ -62,6 +62,7 @@ var flags = []cli.Flag{
 // NewApp returns a new cli.App for the deploy command.
 func NewApp() *cli.App {
 	app := cli.NewApp()
+	app.Version = "0.0.1"
 	app.Name = Name
 	app.Usage = Usage
 	app.Flags = flags

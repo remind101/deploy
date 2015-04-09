@@ -17,20 +17,20 @@ The first time you try to deploy, you'll be asked to authenticate with GitHub. I
 Deploy the master branch of a repo to staging:
 
 ```console
-$ deploy -ref=master -env=staging remind101/r101-api
+$ deploy --ref=master --env=staging remind101/r101-api
 ```
 
-An empty `-ref` flag can mean one of two things:
+An empty `--ref` flag can mean one of two things:
 
 1. If you're within a git repo, it defaults to the current git commit.
 2. If you're not within a git repo, then it defaults to `master`.
 
 ```console
-$ deploy -env=staging remind101/r101-api
+$ deploy --env=staging remind101/r101-api
 ```
 
 Deploy the current GitHub repo to staging:
 
 ```console
-$ deploy -env=staging
+$ deploy --env=staging
 ```

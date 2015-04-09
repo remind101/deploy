@@ -23,13 +23,13 @@ const DefaultRef = "master"
 func init() {
 	cli.AppHelpTemplate = `USAGE:
    # Deploy the master branch of remind101/acme-inc to staging
-   {{.Name}} -env=staging -ref=master remind101/acme-inc
+   {{.Name}} --env=staging --ref=master remind101/acme-inc
 
    # Deploy HEAD of the current branch to staging
-   {{.Name}} -env=staging remind101/acme-inc
+   {{.Name}} --env=staging remind101/acme-inc
 
    # Deploy the current GitHub repo to staging
-   {{.Name}} -env=staging
+   {{.Name}} --env=staging
 {{if .Flags}}
 OPTIONS:
    {{range .Flags}}{{.}}
@@ -159,7 +159,7 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 
 	env := c.String("env")
 	if env == "" {
-		return nil, fmt.Errorf("-env flag is required")
+		return nil, fmt.Errorf("--env flag is required")
 	}
 
 	var contexts *[]string

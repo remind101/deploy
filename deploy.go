@@ -1,10 +1,13 @@
 package deploy
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/codegangsta/cli"
 	hub "github.com/github/hub/github"
@@ -48,6 +51,8 @@ func NewApp() *cli.App {
 
 // RunDeploy performs a deploy.
 func RunDeploy(c *cli.Context) {
+	w := c.App.Writer
+
 	h, err := hub.CurrentConfig().PromptForHost("github.com")
 	if err != nil {
 		log.Fatal(err)
@@ -60,7 +65,7 @@ func RunDeploy(c *cli.Context) {
 
 	owner, repo := splitRepo(c.Args()[0])
 
-	_, _, err = client.Repositories.CreateDeployment(owner, repo, &github.DeploymentRequest{
+	d, _, err := client.Repositories.CreateDeployment(owner, repo, &github.DeploymentRequest{
 		Ref:         github.String(c.String("ref")),
 		Task:        github.String("deploy"),
 		AutoMerge:   github.Bool(false),
@@ -69,6 +74,36 @@ func RunDeploy(c *cli.Context) {
 	})
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	ch := make(chan *github.DeploymentStatus)
+
+	go func() {
+		for {
+			statuses, _, err := client.Repositories.ListDeploymentStatuses(owner, repo, *d.ID, nil)
+			if err != nil {
+				continue
+			}
+
+			if len(statuses) != 0 {
+				ch <- &statuses[0]
+				break
+			}
+		}
+	}()
+
+	timeout := time.Duration(20)
+	select {
+	case <-time.After(timeout * time.Second):
+		fmt.Fprintf(os.Stderr, "No deployment started after waiting %d seconds\n", timeout)
+		os.Exit(-1)
+	case status := <-ch:
+		var url string
+		if status.TargetURL != nil {
+			url = *status.TargetURL
+		}
+
+		fmt.Fprintf(w, "Deployment started: %s\n", url)
 	}
 }
 

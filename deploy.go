@@ -2,10 +2,12 @@ package deploy
 
 import (
 	"log"
+	"net/http"
 	"net/url"
 	"strings"
 
 	"github.com/codegangsta/cli"
+	hub "github.com/github/hub/github"
 	"github.com/google/go-github/github"
 )
 
@@ -17,13 +19,13 @@ const (
 var flags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "github",
-		Value:  "",
+		Value:  "https://api.github.com",
 		Usage:  "The location of the GitHub API. You probably don't want to change this.",
 		EnvVar: "GITHUB_API_URL",
 	},
 	cli.StringFlag{
 		Name:  "ref",
-		Value: "",
+		Value: "master",
 		Usage: "The git ref to deploy. Can be a git commit, branch or tag.",
 	},
 	cli.StringFlag{
@@ -46,7 +48,12 @@ func NewApp() *cli.App {
 
 // RunDeploy performs a deploy.
 func RunDeploy(c *cli.Context) {
-	client, err := newGitHubClient(c)
+	h, err := hub.CurrentConfig().PromptForHost("github.com")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client, err := newGitHubClient(c, h)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -72,13 +79,34 @@ func splitRepo(nwo string) (owner string, repo string) {
 	return
 }
 
-func newGitHubClient(c *cli.Context) (*github.Client, error) {
+func newGitHubClient(c *cli.Context, h *hub.Host) (*github.Client, error) {
 	u, err := url.Parse(c.String("github"))
 	if err != nil {
 		return nil, err
 	}
 
-	client := github.NewClient(nil)
+	t := &transport{
+		Username: h.AccessToken,
+		Password: "x-oauth-basic",
+	}
+
+	client := github.NewClient(&http.Client{Transport: t})
 	client.BaseURL = u
 	return client, nil
+}
+
+type transport struct {
+	Username  string
+	Password  string
+	Transport http.RoundTripper
+}
+
+func (t *transport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if t.Transport == nil {
+		t.Transport = http.DefaultTransport
+	}
+
+	req.SetBasicAuth(t.Username, t.Password)
+
+	return t.Transport.RoundTrip(req)
 }

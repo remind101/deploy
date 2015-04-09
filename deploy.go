@@ -183,6 +183,9 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 		AutoMerge:        github.Bool(false),
 		Environment:      github.String(env),
 		RequiredContexts: contexts,
+		Payload: map[string]interface{}{
+			"force": c.Bool("force"),
+		},
 		// TODO Description:
 	}, nil
 }

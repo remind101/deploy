@@ -67,6 +67,8 @@ func NewApp() *cli.App {
 			if err, ok := err.(*github.ErrorResponse); ok {
 				if strings.HasPrefix(err.Message, "Conflict: Commit status checks failed for") {
 					msg = "Commit status checks failed. You can bypass commit status checks with the --force flag."
+				} else if strings.HasPrefix(err.Message, "No ref found for") {
+					msg = fmt.Sprintf("%s. Did you push it to GitHub?", err.Message)
 				} else {
 					msg = err.Message
 				}

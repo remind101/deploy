@@ -134,7 +134,7 @@ func RunDeploy(c *cli.Context) error {
 	timeout := time.Duration(20)
 	select {
 	case <-time.After(timeout * time.Second):
-		return fmt.Errorf("no deployment started after waiting %d seconds\n", timeout)
+		return fmt.Errorf("No deployment started after waiting %d seconds\n", timeout)
 	case status := <-ch:
 		var url string
 		if status.TargetURL != nil {

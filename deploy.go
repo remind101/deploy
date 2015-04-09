@@ -112,7 +112,7 @@ func RunDeploy(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Fprintf(w, "Creating deployment request for %s@%s to %s...\n", nwo, *r.Ref, *r.Environment)
+	fmt.Fprintf(w, "Deploying %s@%s to %s... ", nwo, *r.Ref, *r.Environment)
 
 	d, _, err := client.Repositories.CreateDeployment(owner, repo, r)
 	if err != nil {
@@ -135,11 +135,13 @@ func RunDeploy(c *cli.Context) error {
 	if status.TargetURL != nil {
 		url = *status.TargetURL
 	}
-	fmt.Fprintf(w, "Started: %s\n", url)
+	fmt.Fprintf(w, "%s\n", url)
 
 	status = <-completed
 
-	fmt.Fprintf(w, "Completed: %s\n", *status.State)
+	if isFailed(*status.State) {
+		return errors.New("Failed to deploy")
+	}
 
 	return nil
 }
@@ -180,6 +182,10 @@ var (
 	pendingStates   = []string{"pending"}
 	completedStates = []string{"success", "error", "failure"}
 )
+
+func isFailed(state string) bool {
+	return state == "error" || state == "failure"
+}
 
 // waitState waits for a deployment status that matches the given states, then
 // sends on the returned channel.

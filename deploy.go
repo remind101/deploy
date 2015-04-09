@@ -50,7 +50,7 @@ var flags = []cli.Flag{
 	},
 	cli.BoolFlag{
 		Name:  "force, f",
-		Usage: "Ignore failed tests.",
+		Usage: "Ignore commit status checks.",
 	},
 }
 

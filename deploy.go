@@ -6,7 +6,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/codegangsta/cli"
 	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
@@ -122,25 +121,27 @@ func RunDeploy(c *cli.Context) error {
 				continue
 			}
 
-			if len(statuses) != 0 {
-				ch <- &statuses[0]
+			completed := CompletedStatus(statuses)
+			if completed != nil {
+				ch <- completed
 				break
 			}
 		}
 	}()
 
-	timeout := time.Duration(20)
-	select {
-	case <-time.After(timeout * time.Second):
-		return fmt.Errorf("No deployment started after waiting %d seconds\n", timeout)
-	case status := <-ch:
-		var url string
-		if status.TargetURL != nil {
-			url = *status.TargetURL
-		}
+	status := <-ch
 
-		fmt.Fprintf(w, "%s\n", url)
+	var url string
+	if status.TargetURL != nil {
+		url = *status.TargetURL
 	}
+
+	state := "unkown"
+	if status.State != nil {
+		state = *status.State
+	}
+
+	fmt.Fprintf(w, "%s: %s\n", state, url)
 
 	return nil
 }
@@ -175,6 +176,23 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 		RequiredContexts: contexts,
 		// TODO Description:
 	}, nil
+}
+
+var completedStatuses = []string{"success", "error", "failure"}
+
+// CompletedStatus takes a slice of github.DeploymentStatus and returns the
+// first "completed" status. nil is returned if there are no completed
+// deployment states.
+func CompletedStatus(statuses []github.DeploymentStatus) *github.DeploymentStatus {
+	for _, ds := range statuses {
+		for _, s := range completedStatuses {
+			if ds.State != nil && *ds.State == s {
+				return &ds
+			}
+		}
+	}
+
+	return nil
 }
 
 // Repo will determine the correct GitHub repo to deploy to, based on a set of

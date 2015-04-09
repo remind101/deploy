@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/jingweno/go-sawyer/hypermedia"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/jingweno/go-sawyer/hypermedia"
 )
 
 var (

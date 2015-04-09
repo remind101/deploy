@@ -8,7 +8,7 @@ import (
 	"os/user"
 	"strings"
 
-	"github.com/octokit/go-octokit/octokit"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 )
 
 const (

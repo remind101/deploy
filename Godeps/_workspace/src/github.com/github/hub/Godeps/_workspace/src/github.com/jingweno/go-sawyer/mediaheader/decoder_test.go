@@ -1,7 +1,7 @@
 package mediaheader
 
 import (
-	"github.com/bmizerany/assert"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/bmizerany/assert"
 	"net/http"
 	"testing"
 )

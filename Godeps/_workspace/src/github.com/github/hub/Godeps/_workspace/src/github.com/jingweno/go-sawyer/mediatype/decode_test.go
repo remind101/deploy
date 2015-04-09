@@ -2,7 +2,7 @@ package mediatype
 
 import (
 	"bytes"
-	"github.com/bmizerany/assert"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/bmizerany/assert"
 	"io"
 	"io/ioutil"
 	"strings"

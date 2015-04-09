@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/howeyc/gopass"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/howeyc/gopass"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/ui"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/utils"
 )
 
 var defaultConfigsFile string

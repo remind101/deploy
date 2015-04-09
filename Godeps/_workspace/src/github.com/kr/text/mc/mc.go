@@ -11,7 +11,7 @@ package main
 
 import (
 	"github.com/kr/pty"
-	"github.com/kr/text/colwriter"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/kr/text/colwriter"
 	"io"
 	"log"
 	"os"

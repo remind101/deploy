@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/cmd"
-	"github.com/github/hub/git"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/cmd"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
 )
 
 func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {

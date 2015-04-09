@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestUsersService_GetCurrentUser(t *testing.T) {

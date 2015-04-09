@@ -9,9 +9,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/github/hub/git"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/ui"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/utils"
 )
 
 const (

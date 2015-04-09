@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/github/hub/git"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
 )
 
 func LocalRepo() (repo *GitHubRepo, err error) {

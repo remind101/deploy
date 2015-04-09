@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/BurntSushi/toml"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/BurntSushi/toml"
 )
 
 func init() {

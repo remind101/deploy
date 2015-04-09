@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestEditor_openAndEdit_deleteFileWhenOpeningEditorFails(t *testing.T) {

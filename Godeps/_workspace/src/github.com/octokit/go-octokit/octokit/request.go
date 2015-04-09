@@ -1,8 +1,8 @@
 package octokit
 
 import (
-	"github.com/jingweno/go-sawyer"
-	"github.com/jingweno/go-sawyer/mediatype"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/jingweno/go-sawyer"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/jingweno/go-sawyer/mediatype"
 )
 
 func newRequest(client *Client, urlStr string) (req *Request, err error) {

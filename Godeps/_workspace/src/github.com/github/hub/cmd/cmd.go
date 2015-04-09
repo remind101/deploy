@@ -8,8 +8,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/kballard/go-shellquote"
-	"github.com/github/hub/utils"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/kballard/go-shellquote"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/utils"
 )
 
 type Cmd struct {

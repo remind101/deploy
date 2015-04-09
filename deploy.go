@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/codegangsta/cli"
-	"github.com/github/hub/git"
-	hub "github.com/github/hub/github"
-	"github.com/google/go-github/github"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/codegangsta/cli"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
+	hub "github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/github"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/google/go-github/github"
 )
 
 const (

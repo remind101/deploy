@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/git"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
 )
 
 type Branch struct {

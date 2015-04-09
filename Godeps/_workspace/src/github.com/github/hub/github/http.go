@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/utils"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/utils"
 )
 
 type verboseTransport struct {

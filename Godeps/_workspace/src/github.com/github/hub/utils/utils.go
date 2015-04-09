@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/github/hub/ui"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/ui"
 )
 
 func Check(err error) {

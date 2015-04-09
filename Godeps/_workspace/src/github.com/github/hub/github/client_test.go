@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/bmizerany/assert"
-	"github.com/octokit/go-octokit/octokit"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 )
 
 func TestClient_newOctokitClient(t *testing.T) {

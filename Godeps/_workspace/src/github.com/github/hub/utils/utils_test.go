@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/bmizerany/assert"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/bmizerany/assert"
 	"testing"
 )
 

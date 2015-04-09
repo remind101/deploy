@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/ogier/pflag"
+	. "github.com/remind101/deploy/Godeps/_workspace/src/github.com/ogier/pflag"
 )
 
 var (

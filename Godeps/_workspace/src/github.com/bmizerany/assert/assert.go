@@ -3,7 +3,7 @@ package assert
 // Testing helpers for doozer.
 
 import (
-	"github.com/kr/pretty"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/kr/pretty"
 	"reflect"
 	"testing"
 	"runtime"

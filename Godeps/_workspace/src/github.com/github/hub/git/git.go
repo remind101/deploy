@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/github/hub/cmd"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/cmd"
 )
 
 var GlobalFlags []string

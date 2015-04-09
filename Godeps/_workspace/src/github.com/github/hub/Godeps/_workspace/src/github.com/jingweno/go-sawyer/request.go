@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/jingweno/go-sawyer/mediaheader"
-	"github.com/jingweno/go-sawyer/mediatype"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/jingweno/go-sawyer/mediaheader"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/jingweno/go-sawyer/mediatype"
 )
 
 type Request struct {

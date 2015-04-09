@@ -3,8 +3,8 @@ package github
 import (
 	"io"
 
-	"github.com/BurntSushi/toml"
-	"gopkg.in/yaml.v1"
+	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/BurntSushi/toml"
+	"github.com/remind101/deploy/Godeps/_workspace/src/gopkg.in/yaml.v1"
 )
 
 type configEncoder interface {

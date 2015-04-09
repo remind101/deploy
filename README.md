@@ -12,7 +12,7 @@ go get -u github.com/remind101/deploy/cmd/deploy
 
 ## Usage
 
-The first time you try to deploy, you'll be asked to authenticate with GitHub. If you already using **[hub](https://github.com/github/hub)**, then you'll already be authenticated.
+The first time you try to deploy, you'll be asked to authenticate with GitHub. If you're already using **[hub](https://github.com/github/hub)**, then you'll already be authenticated.
 
 Deploy the master branch of a repo to staging:
 

@@ -19,7 +19,12 @@ const (
 	Usage = "A command for creating GitHub deployments"
 )
 
-const DefaultRef = "master"
+const (
+	DefaultRef     = "master"
+	DefaultTimeout = 20 * time.Second
+)
+
+var errTimeout = errors.New("timed out waiting for build to start")
 
 func init() {
 	cli.AppHelpTemplate = `USAGE:
@@ -130,14 +135,18 @@ func RunDeploy(c *cli.Context) error {
 		completed <- waitState(completedStates, owner, repo, *d.ID, client)
 	}()
 
-	status := <-started
-	var url string
-	if status.TargetURL != nil {
-		url = *status.TargetURL
+	select {
+	case <-time.After(DefaultTimeout):
+		return errTimeout
+	case status := <-started:
+		var url string
+		if status.TargetURL != nil {
+			url = *status.TargetURL
+		}
+		fmt.Fprintf(w, "%s\n", url)
 	}
-	fmt.Fprintf(w, "%s\n", url)
 
-	status = <-completed
+	status := <-completed
 
 	if isFailed(*status.State) {
 		return errors.New("Failed to deploy")

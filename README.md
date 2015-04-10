@@ -4,11 +4,13 @@ Deploy is a small Go program for creating **[GitHub Deployments](https://develop
 
 ## Installation
 
+You can grab the latest release **[here](https://github.com/remind101/deploy/releases)**
+
+Or if you have a working Go 1.4 environment:
+
 ```
 go get -u github.com/remind101/deploy/cmd/deploy
 ```
-
-**TODO**: Prebuilt binaries.
 
 ## Usage
 

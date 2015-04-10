@@ -29,6 +29,13 @@ An empty `--ref` flag can mean one of two things:
 $ deploy --env=staging remind101/r101-api
 ```
 
+You can default to a certain GitHub organization by setting a `GITHUB_ORGANIZATION` environment variable:
+
+```console
+$ export GITHUB_ORGANIZATION=remind101
+$ deploy --env=staging r101-api
+```
+
 Deploy the current GitHub repo to staging:
 
 ```console

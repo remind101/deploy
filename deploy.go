@@ -107,7 +107,7 @@ func RunDeploy(c *cli.Context) error {
 		return err
 	}
 
-	owner, repo, err := SplitRepo(nwo)
+	owner, repo, err := SplitRepo(nwo, os.Getenv("GITHUB_ORGANIZATION"))
 	if err != nil {
 		return fmt.Errorf("Invalid GitHub repo: %s", nwo)
 	}
@@ -286,8 +286,16 @@ var errInvalidRepo = errors.New("invalid repo")
 
 // SplitRepo splits a repo string in the form remind101/acme-inc into it's owner
 // and repo components.
-func SplitRepo(nwo string) (owner string, repo string, err error) {
+func SplitRepo(nwo, defaultOrg string) (owner string, repo string, err error) {
 	parts := strings.Split(nwo, "/")
+
+	// If we were only given a repo name, and a default organization is set,
+	// we'll use the defaultOrg as the owner.
+	if len(parts) == 1 && defaultOrg != "" && parts[0] != "" {
+		owner = defaultOrg
+		repo = parts[0]
+		return
+	}
 
 	if len(parts) != 2 {
 		err = errInvalidRepo

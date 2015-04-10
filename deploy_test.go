@@ -35,15 +35,20 @@ func TestGitHubRepo(t *testing.T) {
 func TestSplitRepo(t *testing.T) {
 	tests := []struct {
 		in          string
+		defaultOrg  string
 		owner, repo string
 		err         error
 	}{
-		{"remind101/acme-inc", "remind101", "acme-inc", nil},
-		{"foo", "", "", errInvalidRepo},
+		{"remind101/acme-inc", "", "remind101", "acme-inc", nil},
+		{"remind101/acme-inc", "foobar", "remind101", "acme-inc", nil},
+		{"acme-inc", "remind101", "remind101", "acme-inc", nil},
+		{"acme-inc", "", "", "", errInvalidRepo},
+		{"", "", "", "", errInvalidRepo},
+		{"", "remind101", "", "", errInvalidRepo},
 	}
 
 	for _, tt := range tests {
-		owner, repo, err := SplitRepo(tt.in)
+		owner, repo, err := SplitRepo(tt.in, tt.defaultOrg)
 		if err != tt.err {
 			t.Fatalf("err => %v; want %v", err, tt.err)
 		}

@@ -1,6 +1,6 @@
 # GitHub Deployments CLI [![Build Status](https://travis-ci.org/remind101/deploy.svg?branch=master)](https://travis-ci.org/remind101/deploy)
 
-Deploy is a small Go program for creating **[GitHub Deployments](https://developer.github.com/v3/repos/deployments/)**.
+A small Go program for creating **[GitHub Deployments](https://developer.github.com/v3/repos/deployments/)**.
 
 ## Installation
 

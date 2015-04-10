@@ -24,7 +24,7 @@ $ deploy --ref=master --env=staging remind101/r101-api
 
 An empty `--ref` flag can mean one of two things:
 
-1. If you're within a git repo, it defaults to the current git commit.
+1. If you're within a git repo, it defaults to the current branch.
 2. If you're not within a git repo, then it defaults to `master`.
 
 ```console

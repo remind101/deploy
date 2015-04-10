@@ -46,4 +46,4 @@ $ deploy --env=staging
 
 ---
 
-Don't have something handling you're GitHub Deployment events? Try **[remind101/tugboat](github.com/remind101/tugboat)** or **[atmos/heaven](https://github.com/atmos/heaven)**.
+Don't have something handling you're GitHub Deployment events? Try **[remind101/tugboat](https://github.com/remind101/tugboat)** or **[atmos/heaven](https://github.com/atmos/heaven)**.

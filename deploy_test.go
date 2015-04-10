@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"errors"
 	"net/url"
 	"testing"
 
@@ -59,6 +60,26 @@ func TestSplitRepo(t *testing.T) {
 
 		if got, want := repo, tt.repo; got != want {
 			t.Fatalf("repo => %s; want %s", got, want)
+		}
+	}
+}
+
+func TestRef(t *testing.T) {
+	tests := []struct {
+		ref      string
+		headFunc func() (string, error)
+		out      string
+	}{
+		{"master", nil, "master"},
+		{"", func() (string, error) { return "", errors.New("no git repo") }, "master"},
+		{"", func() (string, error) { return "refs/heads/test-deploy", nil }, "test-deploy"},
+	}
+
+	for i, tt := range tests {
+		out := Ref(tt.ref, tt.headFunc)
+
+		if got, want := out, tt.out; got != want {
+			t.Errorf("#%d: Ref => %s; want %s", i, got, want)
 		}
 	}
 }

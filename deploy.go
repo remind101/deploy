@@ -156,15 +156,7 @@ func RunDeploy(c *cli.Context) error {
 }
 
 func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
-	ref := c.String("ref")
-	if ref == "" {
-		r, err := git.Ref("HEAD")
-		if err == nil {
-			ref = r
-		} else {
-			ref = DefaultRef
-		}
-	}
+	ref := Ref(c.String("ref"), git.Head)
 
 	env := c.String("env")
 	if env == "" {
@@ -229,6 +221,29 @@ func firstStatus(states []string, statuses []github.DeploymentStatus) *github.De
 	}
 
 	return nil
+}
+
+// refRegex is a regular expression that matches a full git HEAD ref.
+var refRegex = regexp.MustCompile(`^refs/heads/(.*)$`)
+
+// Ref attempts to return the proper git ref to deploy. If a ref is provided,
+// that will be returned. If not, it will fallback to calling headFunc. If an
+// error is returned (not in a git repo), then it will fallback to DefaultRef.
+func Ref(ref string, headFunc func() (string, error)) string {
+	if ref != "" {
+		return ref
+	}
+
+	ref, err := headFunc()
+	if err != nil {
+		// An error means that we're either not in a GitRepo or we're
+		// not on a branch. In this case, we just fallback to the
+		// DefaultRef.
+		return DefaultRef
+	}
+
+	// Convert `refs/heads/test-deploy` => `test-deploy`
+	return refRegex.ReplaceAllString(ref, "$1")
 }
 
 // Repo will determine the correct GitHub repo to deploy to, based on a set of

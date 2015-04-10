@@ -3,6 +3,8 @@ package deploy
 import (
 	"errors"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -58,6 +60,14 @@ var flags = []cli.Flag{
 		Name:  "force, f",
 		Usage: "Ignore commit status checks.",
 	},
+	cli.BoolFlag{
+		Name:  "detached, d",
+		Usage: "Don't wait for the deployment to complete.",
+	},
+	cli.BoolFlag{
+		Name:  "quiet, q",
+		Usage: "Silence any output to STDOUT.",
+	},
 }
 
 // NewApp returns a new cli.App for the deploy command.
@@ -90,7 +100,12 @@ func NewApp() *cli.App {
 
 // RunDeploy performs a deploy.
 func RunDeploy(c *cli.Context) error {
-	w := c.App.Writer
+	var w io.Writer
+	if c.Bool("quiet") {
+		w = ioutil.Discard
+	} else {
+		w = c.App.Writer
+	}
 
 	h, err := hub.CurrentConfig().PromptForHost("github.com")
 	if err != nil {
@@ -118,6 +133,10 @@ func RunDeploy(c *cli.Context) error {
 	}
 
 	fmt.Fprintf(w, "Deploying %s/%s@%s to %s...\n", owner, repo, *r.Ref, *r.Environment)
+
+	if c.Bool("detached") {
+		return nil
+	}
 
 	d, _, err := client.Repositories.CreateDeployment(owner, repo, r)
 	if err != nil {

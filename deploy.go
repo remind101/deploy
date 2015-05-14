@@ -71,6 +71,12 @@ var flags = []cli.Flag{
 	},
 }
 
+var ProtectedEnvironments = make(map[string]struct{})
+
+func initProtectedEnvironments() {
+	ProtectedEnvironments["production"] = struct{}{}
+}
+
 // NewApp returns a new cli.App for the deploy command.
 func NewApp() *cli.App {
 	app := cli.NewApp()
@@ -79,6 +85,8 @@ func NewApp() *cli.App {
 	app.Usage = Usage
 	app.Flags = flags
 	app.Action = func(c *cli.Context) {
+		initProtectedEnvironments()
+
 		if err := RunDeploy(c); err != nil {
 			msg := err.Error()
 			if err, ok := err.(*github.ErrorResponse); ok {
@@ -183,11 +191,10 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 		return nil, fmt.Errorf("--env flag is required")
 	}
 
-	if env == "production" {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Printf("Are you sure you want to push to production? (y/N)\n")
-		a, _ := reader.ReadString('\n')
-		if strings.ToUpper(a) == "N\n" {
+	_, ok := ProtectedEnvironments[env]
+	if ok {
+		yes := askYN("Are you sure you want to push to production?")
+		if !yes {
 			return nil, fmt.Errorf("Deployment aborted.")
 		}
 	}
@@ -350,4 +357,15 @@ func SplitRepo(nwo, defaultOrg string) (owner string, repo string, err error) {
 	repo = parts[1]
 
 	return
+}
+
+func askYN(prompt string) bool {
+	r := bufio.NewReader(os.Stdin)
+	fmt.Printf("%s (y/N)\n", prompt)
+	a, _ := r.ReadString('\n')
+	if strings.ToUpper(a) == "N\n" {
+		return false
+	}
+
+	return true
 }

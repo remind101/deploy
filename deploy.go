@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -180,6 +181,15 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 	env := c.String("env")
 	if env == "" {
 		return nil, fmt.Errorf("--env flag is required")
+	}
+
+	if env == "production" {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("Are you sure you want to push to production? (y/N)\n")
+		a, _ := reader.ReadString('\n')
+		if strings.ToUpper(a) == "N\n" {
+			return nil, fmt.Errorf("Deployment aborted.")
+		}
 	}
 
 	var contexts *[]string

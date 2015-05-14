@@ -363,9 +363,5 @@ func askYN(prompt string) bool {
 	r := bufio.NewReader(os.Stdin)
 	fmt.Printf("%s (y/N)\n", prompt)
 	a, _ := r.ReadString('\n')
-	if strings.ToUpper(a) == "N\n" {
-		return false
-	}
-
-	return true
+	return strings.ToUpper(a) == "Y\n"
 }

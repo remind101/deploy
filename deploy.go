@@ -1,6 +1,7 @@
 package deploy
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
@@ -68,6 +69,10 @@ var flags = []cli.Flag{
 		Name:  "quiet, q",
 		Usage: "Silence any output to STDOUT.",
 	},
+}
+
+var ProtectedEnvironments = map[string]bool{
+	"production": true,
 }
 
 // NewApp returns a new cli.App for the deploy command.
@@ -180,6 +185,13 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 	env := c.String("env")
 	if env == "" {
 		return nil, fmt.Errorf("--env flag is required")
+	}
+
+	if ProtectedEnvironments[env] {
+		yes := askYN("Are you sure you want to push to production?")
+		if !yes {
+			return nil, fmt.Errorf("Deployment aborted.")
+		}
 	}
 
 	var contexts *[]string
@@ -340,4 +352,11 @@ func SplitRepo(nwo, defaultOrg string) (owner string, repo string, err error) {
 	repo = parts[1]
 
 	return
+}
+
+func askYN(prompt string) bool {
+	r := bufio.NewReader(os.Stdin)
+	fmt.Printf("%s (y/N)\n", prompt)
+	a, _ := r.ReadString('\n')
+	return strings.ToUpper(a) == "Y\n"
 }

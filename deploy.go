@@ -188,7 +188,7 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 	}
 
 	if ProtectedEnvironments[env] {
-		yes := askYN("Are you sure you want to push to production?")
+		yes := askYN(fmt.Sprintf("Are you sure you want to deploy %s to %s?", ref, env))
 		if !yes {
 			return nil, fmt.Errorf("Deployment aborted.")
 		}

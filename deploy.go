@@ -69,6 +69,10 @@ var flags = []cli.Flag{
 		Name:  "quiet, q",
 		Usage: "Silence any output to STDOUT.",
 	},
+	cli.BoolFlag{
+		Name:  "update, u",
+		Usage: "Update the binary",
+	},
 }
 
 var ProtectedEnvironments = map[string]bool{
@@ -83,6 +87,16 @@ func NewApp() *cli.App {
 	app.Usage = Usage
 	app.Flags = flags
 	app.Action = func(c *cli.Context) {
+		if c.Bool("update") {
+			updater := NewUpdater()
+			if err := updater.Update(); err != nil {
+				fmt.Println(err)
+				os.Exit(-1)
+			} else {
+				os.Exit(0)
+			}
+		}
+
 		if err := RunDeploy(c); err != nil {
 			msg := err.Error()
 			if err, ok := err.(*github.ErrorResponse); ok {

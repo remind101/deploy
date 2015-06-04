@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "need version number. make release VERSION=0.0.3"
+    exit
+fi
+
+goxc -bc="linux,darwin" -d build -pv="$1" -tasks-=package
+
+find $(dirname $0)/../build/$1/* -type d -exec mv -n -- {}/deploy {}_deploy \;
+rm -R -- $(dirname $0)/../build/$1/*/

@@ -209,6 +209,10 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 	}
 
 	var contexts *[]string
+	if os.Getenv("REQUIRED_CONTEXTS") != "" {
+		s := strings.Split(os.Getenv("REQUIRED_CONTEXTS"), ",")
+		contexts = &s
+	}
 	if c.Bool("force") {
 		s := []string{}
 		contexts = &s

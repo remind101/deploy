@@ -77,6 +77,7 @@ var flags = []cli.Flag{
 
 var ProtectedEnvironments = map[string]bool{
 	"production": true,
+	"prod":       true,
 }
 
 // NewApp returns a new cli.App for the deploy command.

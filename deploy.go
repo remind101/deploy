@@ -75,9 +75,9 @@ var flags = []cli.Flag{
 	},
 }
 
-var ProtectedEnvironments = map[string]struct{}{
-	"production": struct{}{},
-	"prod":       struct{}{},
+var ProtectedEnvironments = map[string]bool{
+	"production": true,
+	"prod":       true,
 }
 
 // NewApp returns a new cli.App for the deploy command.
@@ -202,7 +202,7 @@ func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 		return nil, fmt.Errorf("--env flag is required")
 	}
 
-	if _, ok := ProtectedEnvironments[env]; ok {
+	if ProtectedEnvironments[env] {
 		yes := askYN(fmt.Sprintf("Are you sure you want to deploy %s to %s?", ref, env))
 		if !yes {
 			return nil, fmt.Errorf("Deployment aborted.")

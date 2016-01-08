@@ -147,6 +147,8 @@ func RunDeploy(c *cli.Context) error {
 		return fmt.Errorf("Invalid GitHub repo: %s", nwo)
 	}
 
+	displayNewCommits(owner, repo, c, client)
+
 	r, err := newDeploymentRequest(c)
 	if err != nil {
 		return err
@@ -192,6 +194,26 @@ func RunDeploy(c *cli.Context) error {
 	}
 
 	return nil
+}
+
+func displayNewCommits(owner string, repo string, c *cli.Context, client *github.Client) {
+	opt := &github.DeploymentsListOptions{
+		Environment: c.String("env"),
+	}
+
+	deployments, _, error := client.Repositories.ListDeployments(owner, repo, opt)
+	if error == nil {
+		sha := *deployments[0].SHA
+		compare, _, cmp_error := client.Repositories.CompareCommits(owner, repo, sha, "master")
+		if cmp_error == nil && len(compare.Commits) > 0 {
+			fmt.Println("Deploying the following commits:\n")
+			for _, commit := range compare.Commits {
+				message := *commit.Commit.Message
+				fmt.Printf("%-20s\t%s\n", *commit.Commit.Author.Name, strings.Split(message, "\n")[0])
+			}
+			fmt.Printf("\nSee entire diff here: https://github.com/%s/%s/compare/%s...master\n\n", owner, repo, sha)
+		}
+        }
 }
 
 func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {

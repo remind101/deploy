@@ -207,14 +207,20 @@ func displayNewCommits(owner string, repo string, c *cli.Context, client *github
 	}
 
 	deployments, _, err := client.Repositories.ListDeployments(owner, repo, opt)
-	if err != nil || len(deployments) == 0 {
+	if err != nil {
 		return err
+	}
+	if len(deployments) == 0 {
+		return nil
 	}
 
 	sha := *deployments[0].SHA
 	compare, _, err := client.Repositories.CompareCommits(owner, repo, sha, ref)
-	if err != nil || len(compare.Commits) == 0 {
+	if err != nil {
 		return err
+	}
+	if len(compare.Commits) == 0 {
+		return nil
 	}
 
 	fmt.Println("Deploying the following commits:\n")

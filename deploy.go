@@ -209,7 +209,8 @@ func displayNewCommits(owner string, repo string, c *cli.Context, client *github
 	deployments, _, err := client.Repositories.ListDeployments(owner, repo, opt)
 	if err != nil {
 		return err
-	} else if len(deployments) == 0 {
+	}
+	if len(deployments) == 0 {
 		return nil
 	}
 
@@ -217,7 +218,8 @@ func displayNewCommits(owner string, repo string, c *cli.Context, client *github
 	compare, _, err := client.Repositories.CompareCommits(owner, repo, sha, ref)
 	if err != nil {
 		return err
-	} else if len(compare.Commits) == 0 {
+	}
+	if len(compare.Commits) == 0 {
 		return nil
 	}
 

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/github/hub/git"
 	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
 	hub "github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/github"
 	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/google/go-github/github"
 )
@@ -151,14 +151,15 @@ func RunDeploy(c *cli.Context) error {
 	if env == "" {
 		return fmt.Errorf("--env flag is required")
 	}
-	env = aliasEnvironment(env)
+	env = AliasEnvironment(env)
 
-	err = displayNewCommits(owner, repo, c, client)
+	ref := Ref(c.String("ref"), git.Head)
+	err = displayNewCommits(owner, repo, ref, env, client)
 	if err != nil {
 		return err
 	}
 
-	r, err := newDeploymentRequest(c)
+	r, err := newDeploymentRequest(c, ref, env)
 	if err != nil {
 		return err
 	}
@@ -205,9 +206,7 @@ func RunDeploy(c *cli.Context) error {
 	return nil
 }
 
-func displayNewCommits(owner string, repo string, c *cli.Context, client *github.Client) error {
-	ref := Ref(c.String("ref"), git.Head)
-
+func displayNewCommits(owner string, repo string, ref string, env string, client *github.Client) error {
 	opt := &github.DeploymentsListOptions{
 		Environment: env,
 	}
@@ -237,7 +236,7 @@ var EnvironmentAliases = map[string]string{
 	"stage": "staging",
 }
 
-func aliasEnvironment(env string) string {
+func AliasEnvironment(env string) string {
 	if a, ok := EnvironmentAliases[env]; ok {
 		return a
 	}
@@ -245,9 +244,7 @@ func aliasEnvironment(env string) string {
 	return env
 }
 
-func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
-	ref := Ref(c.String("ref"), git.Head)
-
+func newDeploymentRequest(c *cli.Context, ref string, env string) (*github.DeploymentRequest, error) {
 	if ProtectedEnvironments[env] {
 		yes := askYN(fmt.Sprintf("Are you sure you want to deploy %s to %s?", ref, env))
 		if !yes {

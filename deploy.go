@@ -46,6 +46,11 @@ OPTIONS:
 `
 }
 
+var env string
+var ProtectedEnvironments = map[string]bool{
+	"production": true,
+}
+
 var flags = []cli.Flag{
 	cli.StringFlag{
 		Name:  "ref, branch, commit, tag",
@@ -53,9 +58,10 @@ var flags = []cli.Flag{
 		Usage: "The git ref to deploy. Can be a git commit, branch or tag.",
 	},
 	cli.StringFlag{
-		Name:  "env, e",
-		Value: "",
-		Usage: "The environment to deploy to.",
+		Name:        "env, e",
+		Value:       "",
+		Usage:       "The environment to deploy to.",
+		Destination: &env,
 	},
 	cli.BoolFlag{
 		Name:  "force, f",
@@ -73,11 +79,6 @@ var flags = []cli.Flag{
 		Name:  "update, u",
 		Usage: "Update the binary",
 	},
-}
-
-var ProtectedEnvironments = map[string]bool{
-	"production": true,
-	"prod":       true,
 }
 
 // NewApp returns a new cli.App for the deploy command.
@@ -147,6 +148,11 @@ func RunDeploy(c *cli.Context) error {
 		return fmt.Errorf("Invalid GitHub repo: %s", nwo)
 	}
 
+	if env == "" {
+		return fmt.Errorf("--env flag is required")
+	}
+	env = aliasEnvironment(env)
+
 	err = displayNewCommits(owner, repo, c, client)
 	if err != nil {
 		return err
@@ -203,7 +209,7 @@ func displayNewCommits(owner string, repo string, c *cli.Context, client *github
 	ref := Ref(c.String("ref"), git.Head)
 
 	opt := &github.DeploymentsListOptions{
-		Environment: c.String("env"),
+		Environment: env,
 	}
 
 	deployments, _, err := client.Repositories.ListDeployments(owner, repo, opt)
@@ -226,13 +232,21 @@ func displayNewCommits(owner string, repo string, c *cli.Context, client *github
 	return nil
 }
 
+var EnvironmentAliases = map[string]string{
+	"prod":  "production",
+	"stage": "staging",
+}
+
+func aliasEnvironment(env string) string {
+	if a, ok := EnvironmentAliases[env]; ok {
+		return a
+	}
+
+	return env
+}
+
 func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
 	ref := Ref(c.String("ref"), git.Head)
-
-	env := c.String("env")
-	if env == "" {
-		return nil, fmt.Errorf("--env flag is required")
-	}
 
 	if ProtectedEnvironments[env] {
 		yes := askYN(fmt.Sprintf("Are you sure you want to deploy %s to %s?", ref, env))

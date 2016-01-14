@@ -3,8 +3,8 @@ package deploy
 import (
 	"net/http"
 
-	hub "github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/github"
-	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/google/go-github/github"
+	hub "github.com/github/hub/github"
+	"github.com/google/go-github/github"
 )
 
 // newGitHubClient returns a new github.Client configured for the GitHub Host.

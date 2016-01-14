@@ -1,6 +1,5 @@
 # GitHub Deployments CLI
 
-[![Build Status](https://travis-ci.org/remind101/deploy.svg?branch=master)](https://travis-ci.org/remind101/deploy)
 [![Circle CI](https://circleci.com/gh/remind101/deploy.svg?style=svg)](https://circleci.com/gh/remind101/deploy)
 
 A small Go program for creating **[GitHub Deployments](https://developer.github.com/v3/repos/deployments/)**.
@@ -9,7 +8,7 @@ A small Go program for creating **[GitHub Deployments](https://developer.github.
 
 You can grab the latest release **[here](https://github.com/remind101/deploy/releases)**
 
-Or if you have a working Go 1.4 environment:
+Or if you have a working Go 1.5 environment and the `GO15VENDOREXPERIMENT` variable enabled:
 
 ```
 go get -u github.com/remind101/deploy/cmd/deploy

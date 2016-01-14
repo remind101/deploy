@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"testing"
 
-	hub "github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/github"
+	hub "github.com/github/hub/github"
 )
 
 var remotes = map[string]*url.URL{

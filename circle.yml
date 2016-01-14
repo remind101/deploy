@@ -1,0 +1,20 @@
+machine:
+  timezone: America/Los_Angeles
+  environment:
+    GO15VENDOREXPERIMENT: 1
+
+checkout:
+  post:
+    - rm -rf ~/.go_workspace/src/github.com/remind101
+    - mkdir -p ~/.go_workspace/src/github.com/remind101
+    - cp -R ~/deploy ~/.go_workspace/src/github.com/remind101/deploy
+
+dependencies:
+  override:
+    - cd ~/.go_workspace/src/github.com/remind101/deploy
+    - go install -a -race std
+    - go install github.com/remind101/deploy/...
+
+test:
+  override:
+    - cd ~/.go_workspace/src/github.com/remind101/deploy && make test && make vet

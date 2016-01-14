@@ -1,10 +1,13 @@
 .PHONY: cmd
 
 cmd:
-	godep go build -o build/deploy ./cmd/deploy
+	go build -o build/deploy ./cmd/deploy
+
+vet:
+	go vet $(shell go list ./... | grep -v /vendor/)
 
 test:
-	godep go test -race ./...
+	go test -race $(shell go list ./... | grep -v /vendor/)
 
 release:
 	./scripts/release $(VERSION)

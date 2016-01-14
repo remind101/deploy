@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/github/hub/git"
-	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/codegangsta/cli"
-	hub "github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/github"
-	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/google/go-github/github"
+	"github.com/codegangsta/cli"
+	hub "github.com/github/hub/github"
+	"github.com/google/go-github/github"
 )
 
 const (

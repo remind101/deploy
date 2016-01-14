@@ -5,8 +5,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/inconshreveable/go-update"
-	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
+	"github.com/inconshreveable/go-update"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 const GitHubHost = "github.com"

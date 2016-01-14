@@ -223,7 +223,7 @@ func displayNewCommits(owner string, repo string, c *cli.Context, client *github
 		return nil
 	}
 
-	fmt.Println("Deploying the following commits:\n")
+	fmt.Printf("%s\n\n", "Deploying the following commits:")
 	for _, commit := range compare.Commits {
 		message := *commit.Commit.Message
 		fmt.Printf("%-20s\t%s\n", *commit.Commit.Author.Name, strings.Split(message, "\n")[0])

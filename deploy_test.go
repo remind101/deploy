@@ -64,6 +64,27 @@ func TestSplitRepo(t *testing.T) {
 	}
 }
 
+func TestAliasEnvironment(t *testing.T) {
+	tests := []struct {
+		env string
+		out string
+	}{
+		{"prod", "production"},
+		{"stage", "staging"},
+		{"production", "production"},
+		{"staging", "staging"},
+		{"badenvironment", "badenvironment"},
+		{"", ""},
+	}
+	for i, tt := range tests {
+		out := AliasEnvironment(tt.env)
+
+		if got, want := out, tt.out; got != want {
+			t.Errorf("#%d: AliasEnvironment => %s; want %s", i, got, want)
+		}
+	}
+}
+
 func TestRef(t *testing.T) {
 	tests := []struct {
 		ref      string

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/github/hub/git"
 	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/codegangsta/cli"
-	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/git"
 	hub "github.com/remind101/deploy/Godeps/_workspace/src/github.com/github/hub/github"
 	"github.com/remind101/deploy/Godeps/_workspace/src/github.com/google/go-github/github"
 )
@@ -46,6 +46,10 @@ OPTIONS:
 `
 }
 
+var ProtectedEnvironments = map[string]bool{
+	"production": true,
+}
+
 var flags = []cli.Flag{
 	cli.StringFlag{
 		Name:  "ref, branch, commit, tag",
@@ -73,11 +77,6 @@ var flags = []cli.Flag{
 		Name:  "update, u",
 		Usage: "Update the binary",
 	},
-}
-
-var ProtectedEnvironments = map[string]bool{
-	"production": true,
-	"prod":       true,
 }
 
 // NewApp returns a new cli.App for the deploy command.
@@ -147,12 +146,19 @@ func RunDeploy(c *cli.Context) error {
 		return fmt.Errorf("Invalid GitHub repo: %s", nwo)
 	}
 
-	err = displayNewCommits(owner, repo, c, client)
+	if c.String("env") == "" {
+		return fmt.Errorf("--env flag is required")
+	}
+
+	env := AliasEnvironment(c.String("env"))
+	ref := Ref(c.String("ref"), git.Head)
+
+	err = displayNewCommits(owner, repo, ref, env, client)
 	if err != nil {
 		return err
 	}
 
-	r, err := newDeploymentRequest(c)
+	r, err := newDeploymentRequest(c, ref, env)
 	if err != nil {
 		return err
 	}
@@ -199,11 +205,9 @@ func RunDeploy(c *cli.Context) error {
 	return nil
 }
 
-func displayNewCommits(owner string, repo string, c *cli.Context, client *github.Client) error {
-	ref := Ref(c.String("ref"), git.Head)
-
+func displayNewCommits(owner string, repo string, ref string, env string, client *github.Client) error {
 	opt := &github.DeploymentsListOptions{
-		Environment: c.String("env"),
+		Environment: env,
 	}
 
 	deployments, _, err := client.Repositories.ListDeployments(owner, repo, opt)
@@ -232,14 +236,20 @@ func displayNewCommits(owner string, repo string, c *cli.Context, client *github
 	return nil
 }
 
-func newDeploymentRequest(c *cli.Context) (*github.DeploymentRequest, error) {
-	ref := Ref(c.String("ref"), git.Head)
+var EnvironmentAliases = map[string]string{
+	"prod":  "production",
+	"stage": "staging",
+}
 
-	env := c.String("env")
-	if env == "" {
-		return nil, fmt.Errorf("--env flag is required")
+func AliasEnvironment(env string) string {
+	if a, ok := EnvironmentAliases[env]; ok {
+		return a
 	}
 
+	return env
+}
+
+func newDeploymentRequest(c *cli.Context, ref string, env string) (*github.DeploymentRequest, error) {
 	if ProtectedEnvironments[env] {
 		yes := askYN(fmt.Sprintf("Are you sure you want to deploy %s to %s?", ref, env))
 		if !yes {

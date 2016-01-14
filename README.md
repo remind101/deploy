@@ -9,7 +9,7 @@ A small Go program for creating **[GitHub Deployments](https://developer.github.
 
 You can grab the latest release **[here](https://github.com/remind101/deploy/releases)**
 
-Or if you have a working Go 1.4 environment:
+Or if you have a working Go 1.5 environment and the `GO15VENDOREXPERIMENT` variable enabled:
 
 ```
 go get -u github.com/remind101/deploy/cmd/deploy

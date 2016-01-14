@@ -46,7 +46,6 @@ OPTIONS:
 `
 }
 
-var env string
 var ProtectedEnvironments = map[string]bool{
 	"production": true,
 }
@@ -58,10 +57,9 @@ var flags = []cli.Flag{
 		Usage: "The git ref to deploy. Can be a git commit, branch or tag.",
 	},
 	cli.StringFlag{
-		Name:        "env, e",
-		Value:       "",
-		Usage:       "The environment to deploy to.",
-		Destination: &env,
+		Name:  "env, e",
+		Value: "",
+		Usage: "The environment to deploy to.",
 	},
 	cli.BoolFlag{
 		Name:  "force, f",
@@ -148,12 +146,13 @@ func RunDeploy(c *cli.Context) error {
 		return fmt.Errorf("Invalid GitHub repo: %s", nwo)
 	}
 
-	if env == "" {
+	if c.String("env") == "" {
 		return fmt.Errorf("--env flag is required")
 	}
-	env = AliasEnvironment(env)
 
+	env := AliasEnvironment(c.String("env"))
 	ref := Ref(c.String("ref"), git.Head)
+
 	err = displayNewCommits(owner, repo, ref, env, client)
 	if err != nil {
 		return err

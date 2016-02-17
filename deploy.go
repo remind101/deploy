@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/git"
 	"github.com/codegangsta/cli"
+	"github.com/github/hub/git"
 	hub "github.com/github/hub/github"
 	"github.com/google/go-github/github"
 )
@@ -90,7 +90,7 @@ func NewApp() *cli.App {
 		if c.Bool("update") {
 			updater := NewUpdater()
 			if err := updater.Update(); err != nil {
-				fmt.Println(err)
+				fmt.Printf("Error Updating deploy command: %s\n", err)
 				os.Exit(-1)
 			} else {
 				os.Exit(0)
@@ -109,7 +109,7 @@ func NewApp() *cli.App {
 				}
 			}
 
-			fmt.Println(msg)
+			fmt.Printf("Error from github deployments: %s\n", msg)
 			os.Exit(-1)
 		}
 	}

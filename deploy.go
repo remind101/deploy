@@ -165,13 +165,13 @@ func RunDeploy(c *cli.Context) error {
 
 	fmt.Fprintf(w, "Deploying %s/%s@%s to %s...\n", owner, repo, *r.Ref, *r.Environment)
 
-	if c.Bool("detached") {
-		return nil
-	}
-
 	d, _, err := client.Repositories.CreateDeployment(owner, repo, r)
 	if err != nil {
 		return err
+	}
+
+	if c.Bool("detached") {
+		return nil
 	}
 
 	started := make(chan *github.DeploymentStatus)

@@ -1,13 +1,19 @@
 .PHONY: cmd
 
-cmd:
+help: #! Show this help message.
+	@echo 'Usage: make [OPTIONS] [TARGET]'
+	@echo ''
+	@echo 'Targets:'
+	@sed -n 's/\(^.*:\).*#!\( .*\$\)/  \1\2/p' $(MAKEFILE_LIST) | column -t -s ':'
+
+cmd: #! Build executable
 	go build -o build/deploy ./cmd/deploy
 
-vet:
-	go vet $(shell go list ./... | grep -v /vendor/)
+vet: #! Run linters and style checkers
+	go vet ./...
 
-test:
-	go test -race $(shell go list ./... | grep -v /vendor/)
+test: #! Run all tests
+	go test -race ./...
 
-release:
+release: # Package releases
 	./scripts/release $(VERSION)

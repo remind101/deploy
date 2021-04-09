@@ -257,10 +257,10 @@ func newDeploymentRequest(c *cli.Context, ref string, env string) (*github.Deplo
 		}
 	}
 
-	var contexts *[]string
+	var contexts []string
 	if c.Bool("force") {
 		s := []string{}
-		contexts = &s
+		contexts = s
 	}
 
 	return &github.DeploymentRequest{
@@ -269,9 +269,8 @@ func newDeploymentRequest(c *cli.Context, ref string, env string) (*github.Deplo
 		AutoMerge:        github.Bool(false),
 		Environment:      github.String(env),
 		RequiredContexts: contexts,
-		Payload: map[string]interface{}{
-			"force": c.Bool("force"),
-		},
+		// TODO(jlb): Do we need to set this payload to something in the future?
+		Payload: nil,
 		// TODO Description:
 	}, nil
 }

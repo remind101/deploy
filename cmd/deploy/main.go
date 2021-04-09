@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/remind101/deploy"
+	"deploy"
 )
 
 func main() {

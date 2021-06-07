@@ -1,3 +1,6 @@
+---
+version: 2.1
+
 machine:
   timezone: America/Los_Angeles
   environment:
@@ -18,3 +21,23 @@ dependencies:
 test:
   override:
     - cd ~/.go_workspace/src/github.com/remind101/deploy && make test && make vet
+
+workflows:
+  default:
+    jobs:
+      - debian
+      - alpine
+
+jobs:
+  debian:
+    docker:
+      - image: library/golang:latest
+    steps:
+      - checkout
+      - run: make
+  alpine:
+    docker:
+      - image: library/golang:latest-alpine
+    steps:
+      - checkout
+      - run: make

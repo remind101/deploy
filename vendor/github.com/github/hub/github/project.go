@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -22,7 +23,9 @@ func (p Project) String() string {
 }
 
 func (p *Project) SameAs(other *Project) bool {
-	return p.Owner == other.Owner && p.Name == other.Name && p.Host == other.Host
+	return strings.ToLower(p.Owner) == strings.ToLower(other.Owner) &&
+		strings.ToLower(p.Name) == strings.ToLower(other.Name) &&
+		strings.ToLower(p.Host) == strings.ToLower(other.Host)
 }
 
 func (p *Project) WebURL(name, owner, path string) string {
@@ -69,9 +72,9 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 
 	host := rawHost(p.Host)
 
-	if useHttpProtocol() {
+	if preferredProtocol() == "https" {
 		url = fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
-	} else if isSSH {
+	} else if isSSH || preferredProtocol() == "ssh" {
 		url = fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
 	} else {
 		url = fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
@@ -92,18 +95,27 @@ func rawHost(host string) string {
 	}
 }
 
-func useHttpProtocol() bool {
-	https := os.Getenv("HUB_PROTOCOL")
-	if https == "" {
-		https, _ = git.Config("hub.protocol")
+func preferredProtocol() string {
+	userProtocol := os.Getenv("HUB_PROTOCOL")
+	if userProtocol == "" {
+		userProtocol, _ = git.Config("hub.protocol")
+	}
+	return userProtocol
+}
+
+func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
+	url, err := url.Parse(repo.HtmlUrl)
+	if err != nil {
+		return
 	}
 
-	return https == "https"
+	p, err = NewProjectFromURL(url)
+	return
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
-	if !knownGitHubHosts().Include(url.Host) {
-		err = fmt.Errorf("Invalid GitHub URL: %s", url)
+	if !knownGitHubHostsInclude(url.Host) {
+		err = &GithubHostError{url}
 		return
 	}
 
@@ -142,7 +154,7 @@ func newProject(owner, name, host, protocol string) *Project {
 		host = DefaultGitHubHost()
 	}
 	if host == "ssh.github.com" {
-		host = "github.com"
+		host = GitHubHost
 	}
 
 	if protocol != "http" && protocol != "https" {
@@ -165,14 +177,15 @@ func newProject(owner, name, host, protocol string) *Project {
 		}
 	}
 
-	if name == "" {
-		name, _ = utils.DirName()
-	}
-
 	return &Project{
 		Name:     name,
 		Owner:    owner,
 		Host:     host,
 		Protocol: protocol,
 	}
+}
+
+func SanitizeProjectName(name string) string {
+	name = filepath.Base(name)
+	return strings.Replace(name, " ", "-", -1)
 }

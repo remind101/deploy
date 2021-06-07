@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -15,18 +14,24 @@ import (
 	"github.com/github/hub/git"
 )
 
-func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
-	messageFile, err := getMessageFile(filePrefix)
+const Scissors = "------------------------ >8 ------------------------"
+
+func NewEditor(filename, topic, message string) (editor *Editor, err error) {
+	gitDir, err := git.Dir()
 	if err != nil {
 		return
 	}
+	messageFile := filepath.Join(gitDir, filename)
 
 	program, err := git.Editor()
 	if err != nil {
 		return
 	}
 
-	cs := git.CommentChar()
+	cs, err := git.CommentChar(message)
+	if err != nil {
+		return
+	}
 
 	editor = &Editor{
 		Program:    program,
@@ -41,32 +46,55 @@ func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
 }
 
 type Editor struct {
-	Program    string
-	Topic      string
-	File       string
-	Message    string
-	CS         string
-	openEditor func(program, file string) error
+	Program           string
+	Topic             string
+	File              string
+	Message           string
+	CS                string
+	addedFirstComment bool
+	openEditor        func(program, file string) error
+}
+
+func (e *Editor) AddCommentedSection(text string) {
+	if !e.addedFirstComment {
+		scissors := e.CS + " " + Scissors + "\n"
+		scissors += e.CS + " Do not modify or remove the line above.\n"
+		scissors += e.CS + " Everything below it will be ignored.\n"
+		e.Message = e.Message + "\n" + scissors
+		e.addedFirstComment = true
+	}
+
+	e.Message = e.Message + "\n" + text
 }
 
 func (e *Editor) DeleteFile() error {
 	return os.Remove(e.File)
 }
 
-func (e *Editor) EditTitleAndBody() (title, body string, err error) {
-	content, err := e.openAndEdit()
+func (e *Editor) EditContent() (content string, err error) {
+	b, err := e.openAndEdit()
 	if err != nil {
 		return
 	}
 
-	content = bytes.TrimSpace(content)
-	reader := bytes.NewReader(content)
-	title, body, err = readTitleAndBody(reader, e.CS)
+	b = bytes.TrimSpace(b)
+	reader := bytes.NewReader(b)
+	scanner := bufio.NewScanner(reader)
+	unquotedLines := []string{}
 
-	if err != nil || title == "" {
-		defer e.DeleteFile()
+	scissorsLine := e.CS + " " + Scissors
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == scissorsLine {
+			break
+		}
+		unquotedLines = append(unquotedLines, line)
+	}
+	if err = scanner.Err(); err != nil {
+		return
 	}
 
+	content = strings.Join(unquotedLines, "\n")
 	return
 }
 
@@ -89,8 +117,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 }
 
 func (e *Editor) writeContent() (err error) {
-	// only write message if file doesn't exist
-	if !e.isFileExist() && e.Message != "" {
+	if !e.isFileExist() {
 		err = ioutil.WriteFile(e.File, []byte(e.Message), 0644)
 		if err != nil {
 			return
@@ -111,52 +138,14 @@ func (e *Editor) readContent() (content []byte, err error) {
 
 func openTextEditor(program, file string) error {
 	editCmd := cmd.New(program)
-	r := regexp.MustCompile("[mg]?vi[m]$")
-	if r.MatchString(program) {
-		editCmd.WithArg("-c")
+	r := regexp.MustCompile(`\b(?:[gm]?vim)(?:\.exe)?$`)
+	if r.MatchString(editCmd.Name) {
+		editCmd.WithArg("--cmd")
 		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}
 	editCmd.WithArg(file)
+	// Reattach stdin to the console before opening the editor
+	setConsole(editCmd)
 
 	return editCmd.Spawn()
-}
-
-func readTitleAndBody(reader io.Reader, cs string) (title, body string, err error) {
-	var titleParts, bodyParts []string
-
-	r := regexp.MustCompile("\\S")
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, cs) {
-			continue
-		}
-
-		if len(bodyParts) == 0 && r.MatchString(line) {
-			titleParts = append(titleParts, line)
-		} else {
-			bodyParts = append(bodyParts, line)
-		}
-	}
-
-	if err = scanner.Err(); err != nil {
-		return
-	}
-
-	title = strings.Join(titleParts, " ")
-	title = strings.TrimSpace(title)
-
-	body = strings.Join(bodyParts, "\n")
-	body = strings.TrimSpace(body)
-
-	return
-}
-
-func getMessageFile(about string) (string, error) {
-	gitDir, err := git.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(gitDir, fmt.Sprintf("%s_EDITMSG", about)), nil
 }

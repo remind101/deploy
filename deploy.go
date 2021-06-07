@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -257,22 +258,21 @@ func newDeploymentRequest(c *cli.Context, ref string, env string) (*github.Deplo
 		}
 	}
 
-	var contexts *[]string
-	if c.Bool("force") {
-		s := []string{}
-		contexts = &s
-	}
+  // Build the payload, which goes...?
+  payload, err := json.Marshal(map[string]interface{}{
+    "force": c.Bool("force"),
+  })
+  if err != nil {
+    return nil, err
+  }
 
 	return &github.DeploymentRequest{
 		Ref:              github.String(ref),
 		Task:             github.String("deploy"),
 		AutoMerge:        github.Bool(false),
 		Environment:      github.String(env),
-		RequiredContexts: contexts,
-		Payload: map[string]interface{}{
-			"force": c.Bool("force"),
-		},
-		// TODO Description:
+		Payload:          github.String(string(payload)),
+    Description: github.String("remind101/deploy CLI-initiated deploy"),
 	}, nil
 }
 

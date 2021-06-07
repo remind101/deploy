@@ -2,14 +2,18 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/github/hub/ui"
 )
+
+var timeNow = time.Now
 
 func Check(err error) {
 	if err != nil {
@@ -56,17 +60,57 @@ func searchBrowserLauncher(goos string) (browser string) {
 	return browser
 }
 
-func DirName() (string, error) {
-	dir, err := os.Getwd()
+func CommandPath(cmd string) (string, error) {
+	if runtime.GOOS == "windows" {
+		cmd = cmd + ".exe"
+	}
+
+	path, err := exec.LookPath(cmd)
 	if err != nil {
 		return "", err
 	}
 
-	name := filepath.Base(dir)
-	name = strings.Replace(name, " ", "-", -1)
-	return name, nil
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.EvalSymlinks(path)
 }
 
-func IsOption(confirm, short, long string) bool {
-	return strings.EqualFold(confirm, short) || strings.EqualFold(confirm, long)
+func TimeAgo(t time.Time) string {
+	duration := timeNow().Sub(t)
+	minutes := duration.Minutes()
+	hours := duration.Hours()
+	days := hours / 24
+	months := days / 30
+	years := months / 12
+
+	var val int
+	var unit string
+
+	if minutes < 1 {
+		return "now"
+	} else if hours < 1 {
+		val = int(minutes)
+		unit = "minute"
+	} else if days < 1 {
+		val = int(hours)
+		unit = "hour"
+	} else if months < 1 {
+		val = int(days)
+		unit = "day"
+	} else if years < 1 {
+		val = int(months)
+		unit = "month"
+	} else {
+		val = int(years)
+		unit = "year"
+	}
+
+	var plural string
+	if val > 1 {
+		plural = "s"
+	}
+	return fmt.Sprintf("%d %s%s ago", val, unit, plural)
 }

@@ -2,12 +2,11 @@ package github
 
 import (
 	"github.com/github/hub/git"
-	"github.com/mattn/go-isatty"
 )
 
 func IsHttpsProtocol() bool {
-	httpProcotol, _ := git.Config("hub.protocol")
-	if httpProcotol == "https" {
+	httpProtocol, _ := git.Config("hub.protocol")
+	if httpProtocol == "https" {
 		return true
 	}
 
@@ -17,8 +16,4 @@ func IsHttpsProtocol() bool {
 	}
 
 	return false
-}
-
-func isTerminal(fd uintptr) bool {
-	return isatty.IsTerminal(fd)
 }

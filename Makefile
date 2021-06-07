@@ -1,6 +1,6 @@
-.PHONY: cmd
+.DEFAULT_GOAL := build/deploy
 
-cmd:
+build/deploy: *.go cmd/deploy/*.go vet test
 	go build -o build/deploy ./cmd/deploy
 
 vet:
@@ -8,6 +8,10 @@ vet:
 
 test:
 	go test -race $(shell go list ./... | grep -v /vendor/)
+
+.PHONY: install
+install: build/deploy
+	install -T build/deploy /usr/local/bin/deploy
 
 release:
 	./scripts/release $(VERSION)

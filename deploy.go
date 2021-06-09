@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -166,7 +167,8 @@ func RunDeploy(c *cli.Context) error {
 
 	fmt.Fprintf(w, "Deploying %s/%s@%s to %s...\n", owner, repo, *r.Ref, *r.Environment)
 
-	d, _, err := client.Repositories.CreateDeployment(owner, repo, r)
+	ctx := context.TODO()
+	d, _, err := client.Repositories.CreateDeployment(ctx, owner, repo, r)
 	if err != nil {
 		return err
 	}
@@ -211,7 +213,7 @@ func displayNewCommits(owner string, repo string, ref string, env string, client
 		Environment: env,
 	}
 
-	deployments, _, err := client.Repositories.ListDeployments(owner, repo, opt)
+	deployments, _, err := client.Repositories.ListDeployments(context.TODO(), owner, repo, opt)
 	if err != nil {
 		return err
 	}
@@ -220,7 +222,7 @@ func displayNewCommits(owner string, repo string, ref string, env string, client
 	}
 
 	sha := *deployments[0].SHA
-	compare, _, err := client.Repositories.CompareCommits(owner, repo, sha, ref)
+	compare, _, err := client.Repositories.CompareCommits(context.TODO(), owner, repo, sha, ref)
 	if err != nil {
 		return err
 	}
@@ -258,21 +260,28 @@ func newDeploymentRequest(c *cli.Context, ref string, env string) (*github.Deplo
 		}
 	}
 
-  // Build the payload, which goes...?
-  payload, err := json.Marshal(map[string]interface{}{
-    "force": c.Bool("force"),
-  })
-  if err != nil {
-    return nil, err
-  }
+	// Build the payload, which goes...?
+	payload, err := json.Marshal(map[string]interface{}{
+		"force": c.Bool("force"),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var contexts *[]string
+	if c.Bool("force") {
+		s := []string{}
+		contexts = &s
+	}
 
 	return &github.DeploymentRequest{
 		Ref:              github.String(ref),
 		Task:             github.String("deploy"),
 		AutoMerge:        github.Bool(false),
 		Environment:      github.String(env),
+		RequiredContexts: contexts,
 		Payload:          github.String(string(payload)),
-    Description: github.String("remind101/deploy CLI-initiated deploy"),
+		Description:      github.String("remind101/deploy CLI-initiated deploy"),
 	}, nil
 }
 
@@ -287,11 +296,11 @@ func isFailed(state string) bool {
 
 // waitState waits for a deployment status that matches the given states, then
 // sends on the returned channel.
-func waitState(states []string, owner, repo string, deploymentID int, c *github.Client) *github.DeploymentStatus {
+func waitState(states []string, owner, repo string, deploymentID int64, c *github.Client) *github.DeploymentStatus {
 	for {
 		<-time.After(1 * time.Second)
 
-		statuses, _, err := c.Repositories.ListDeploymentStatuses(owner, repo, deploymentID, nil)
+		statuses, _, err := c.Repositories.ListDeploymentStatuses(context.TODO(), owner, repo, deploymentID, nil)
 		if err != nil {
 			continue
 		}
@@ -305,11 +314,11 @@ func waitState(states []string, owner, repo string, deploymentID int, c *github.
 
 // firstStatus takes a slice of github.DeploymentStatus and returns the
 // first status that matches the provided slice of states.
-func firstStatus(states []string, statuses []github.DeploymentStatus) *github.DeploymentStatus {
+func firstStatus(states []string, statuses []*github.DeploymentStatus) *github.DeploymentStatus {
 	for _, ds := range statuses {
 		for _, s := range states {
 			if ds.State != nil && *ds.State == s {
-				return &ds
+				return ds
 			}
 		}
 	}

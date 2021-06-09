@@ -9,7 +9,7 @@ require (
 	github.com/codegangsta/cli v1.6.0
 	github.com/fhs/go-netrc v1.0.0 // indirect
 	github.com/github/hub v2.11.2+incompatible
-	github.com/google/go-github v0.0.0-20150126182318-7ea4ee6d2226
+	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v0.0.0-20130914073520-ec0a78e0f4db // indirect
 	github.com/inconshreveable/go-update v0.0.0-20141015175313-221d034a558b
 	github.com/jingweno/go-sawyer v0.0.0-20140729165055-1999ae5763d6 // indirect

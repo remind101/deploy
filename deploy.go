@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/github/hub/git"
 	hub "github.com/github/hub/github"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v35/github"
+	"github.com/urfave/cli"
 )
 
 const (

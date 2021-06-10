@@ -1,14 +1,12 @@
 # bitbucket.org/kardianos/osext v0.0.0-20181027061946-15c52d0993e9
 ## explicit
 bitbucket.org/kardianos/osext
-# github.com/BurntSushi/toml v0.1.1-0.20141028230038-3883ac1ce943
-## explicit
+# github.com/BurntSushi/toml v0.3.1
 github.com/BurntSushi/toml
 # github.com/bmizerany/assert v0.0.0-20120716205630-e17e99893cb6
 ## explicit
-# github.com/codegangsta/cli v1.6.0
-## explicit
-github.com/codegangsta/cli
+# github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d
+github.com/cpuguy83/go-md2man/v2/md2man
 # github.com/fhs/go-netrc v1.0.0
 ## explicit
 github.com/fhs/go-netrc/netrc
@@ -20,11 +18,10 @@ github.com/github/hub/github
 github.com/github/hub/ui
 github.com/github/hub/utils
 github.com/github/hub/version
-# github.com/google/go-github v17.0.0+incompatible
+# github.com/google/go-github/v35 v35.3.0
 ## explicit
-github.com/google/go-github/github
-# github.com/google/go-querystring v0.0.0-20130914073520-ec0a78e0f4db
-## explicit
+github.com/google/go-github/v35/github
+# github.com/google/go-querystring v1.0.0
 github.com/google/go-querystring/query
 # github.com/inconshreveable/go-update v0.0.0-20141015175313-221d034a558b
 ## explicit
@@ -60,8 +57,22 @@ github.com/mitchellh/go-homedir
 # github.com/octokit/go-octokit v0.4.1-0.20141117142748-69099306b45a
 ## explicit
 github.com/octokit/go-octokit/octokit
+# github.com/russross/blackfriday/v2 v2.0.1
+github.com/russross/blackfriday/v2
+# github.com/shurcooL/sanitized_anchor_name v1.0.0
+github.com/shurcooL/sanitized_anchor_name
+# github.com/urfave/cli v1.22.5
+## explicit
+github.com/urfave/cli
 # golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 ## explicit
+golang.org/x/crypto/cast5
+golang.org/x/crypto/openpgp
+golang.org/x/crypto/openpgp/armor
+golang.org/x/crypto/openpgp/elgamal
+golang.org/x/crypto/openpgp/errors
+golang.org/x/crypto/openpgp/packet
+golang.org/x/crypto/openpgp/s2k
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
 golang.org/x/sys/internal/unsafeheader

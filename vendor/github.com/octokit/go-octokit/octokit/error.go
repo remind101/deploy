@@ -2,6 +2,7 @@ package octokit
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
@@ -97,42 +98,43 @@ func (e *ResponseError) errorMessage() string {
 
 func NewResponseError(resp *sawyer.Response) (err *ResponseError) {
 	err = &ResponseError{}
+	err.Response = resp.Response
+	err.Type = getResponseErrorType(resp.Response)
 
 	e := resp.Decode(&err)
 	if e != nil {
 		err.Message = fmt.Sprintf("Problems parsing error message: %s", e)
 	}
 
-	err.Response = resp.Response
-	err.Type = getResponseErrorType(err)
 	return
 }
 
-func getResponseErrorType(err *ResponseError) ResponseErrorType {
-	code := err.Response.StatusCode
-	header := err.Response.Header
-
+func getResponseErrorType(resp *http.Response) ResponseErrorType {
+	code := resp.StatusCode
 	switch {
 	case code == http.StatusBadRequest:
 		return ErrorBadRequest
 
 	case code == http.StatusUnauthorized:
-		otp := header.Get("X-GitHub-OTP")
+		header := resp.Header.Get("X-GitHub-OTP")
 		r := regexp.MustCompile(`(?i)required; (\w+)`)
-		if r.MatchString(otp) {
+		if r.MatchString(header) {
 			return ErrorOneTimePasswordRequired
 		}
 
 		return ErrorUnauthorized
 
 	case code == http.StatusForbidden:
-		msg := err.Message
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return ErrorForbidden
+		}
 		rr := regexp.MustCompile("(?i)rate limit exceeded")
-		if rr.MatchString(msg) {
+		if rr.MatchString(string(body)) {
 			return ErrorTooManyRequests
 		}
 		lr := regexp.MustCompile("(?i)login attempts exceeded")
-		if lr.MatchString(msg) {
+		if lr.MatchString(string(body)) {
 			return ErrorTooManyLoginAttempts
 		}
 

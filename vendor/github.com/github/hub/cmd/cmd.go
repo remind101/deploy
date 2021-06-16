@@ -8,14 +8,17 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/kballard/go-shellquote"
 )
 
 type Cmd struct {
-	Name string
-	Args []string
+	Name   string
+	Args   []string
+	Stdin  *os.File
+	Stdout *os.File
+	Stderr *os.File
 }
 
 func (cmd Cmd) String() string {
@@ -43,23 +46,51 @@ func (cmd *Cmd) CombinedOutput() (string, error) {
 	return string(output), err
 }
 
+func (cmd *Cmd) Success() bool {
+	verboseLog(cmd)
+	err := exec.Command(cmd.Name, cmd.Args...).Run()
+	return err == nil
+}
+
 // Run runs command with `Exec` on platforms except Windows
 // which only supports `Spawn`
 func (cmd *Cmd) Run() error {
-	if runtime.GOOS == "windows" {
+	if isWindows() {
 		return cmd.Spawn()
 	} else {
 		return cmd.Exec()
 	}
 }
 
+func isWindows() bool {
+	return runtime.GOOS == "windows" || detectWSL()
+}
+
+var detectedWSL bool
+var detectedWSLContents string
+
+// https://github.com/Microsoft/WSL/issues/423#issuecomment-221627364
+func detectWSL() bool {
+	if !detectedWSL {
+		b := make([]byte, 1024)
+		f, err := os.Open("/proc/version")
+		if err == nil {
+			f.Read(b)
+			f.Close()
+			detectedWSLContents = string(b)
+		}
+		detectedWSL = true
+	}
+	return strings.Contains(detectedWSLContents, "Microsoft")
+}
+
 // Spawn runs command with spawn(3)
 func (cmd *Cmd) Spawn() error {
 	verboseLog(cmd)
 	c := exec.Command(cmd.Name, cmd.Args...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
+	c.Stdin = cmd.Stdin
+	c.Stdout = cmd.Stdout
+	c.Stderr = cmd.Stderr
 
 	return c.Run()
 }
@@ -67,15 +98,19 @@ func (cmd *Cmd) Spawn() error {
 // Exec runs command with exec(3)
 // Note that Windows doesn't support exec(3): http://golang.org/src/pkg/syscall/exec_windows.go#L339
 func (cmd *Cmd) Exec() error {
+	verboseLog(cmd)
+
 	binary, err := exec.LookPath(cmd.Name)
 	if err != nil {
-		return fmt.Errorf("command not found: %s", cmd.Name)
+		return &exec.Error{
+			Name: cmd.Name,
+			Err:  fmt.Errorf("command not found"),
+		}
 	}
 
 	args := []string{binary}
 	args = append(args, cmd.Args...)
 
-	verboseLog(cmd)
 	return syscall.Exec(binary, args, os.Environ())
 }
 
@@ -84,15 +119,13 @@ func New(cmd string) *Cmd {
 	utils.Check(err)
 
 	name := cmds[0]
-	args := make([]string, 0)
-	for _, arg := range cmds[1:] {
-		args = append(args, arg)
-	}
-	return &Cmd{Name: name, Args: args}
+	args := cmds[1:]
+
+	return &Cmd{Name: name, Args: args, Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}
 }
 
 func NewWithArray(cmd []string) *Cmd {
-	return &Cmd{Name: cmd[0], Args: cmd[1:]}
+	return &Cmd{Name: cmd[0], Args: cmd[1:], Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}
 }
 
 func verboseLog(cmd *Cmd) {

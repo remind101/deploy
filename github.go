@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	hub "github.com/github/hub/github"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v35/github"
 )
 
 // newGitHubClient returns a new github.Client configured for the GitHub Host.

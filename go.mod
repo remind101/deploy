@@ -19,7 +19,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/octokit/go-octokit v0.4.1-0.20141117142748-69099306b45a
 	github.com/urfave/cli v1.22.5
-	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a // indirect
+	golang.org/x/crypto v0.1.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20160105164936-4f90aeace3a2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
